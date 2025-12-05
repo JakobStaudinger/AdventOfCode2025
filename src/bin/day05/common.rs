@@ -1,9 +1,9 @@
 use std::{ops::RangeInclusive, str::FromStr};
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Hash, Debug)]
 pub struct Id(u128);
 
-#[derive(Clone)]
+#[derive(Clone, Hash, PartialEq, Eq, Debug)]
 pub struct IdRange(RangeInclusive<Id>);
 
 impl FromStr for Id {
@@ -30,8 +30,42 @@ impl FromStr for IdRange {
     }
 }
 
+impl Id {
+    pub fn incremented(self) -> Self {
+        Self(self.0 + 1)
+    }
+
+    pub fn decremented(self) -> Self {
+        Self(self.0 - 1)
+    }
+}
+
 impl IdRange {
     pub fn contains(&self, id: &Id) -> bool {
         self.0.contains(id)
+    }
+
+    pub fn start(&self) -> &Id {
+        self.0.start()
+    }
+
+    pub fn end(&self) -> &Id {
+        self.0.end()
+    }
+
+    pub fn number_of_ids(&self) -> usize {
+        if self.0.is_empty() {
+            0
+        } else {
+            (self.end().0 - self.start().0 + 1) as usize
+        }
+    }
+
+    pub fn with_start(self, start: Id) -> Self {
+        Self(start..=*self.end())
+    }
+
+    pub fn with_end(self, end: Id) -> Self {
+        Self(*self.start()..=end)
     }
 }
