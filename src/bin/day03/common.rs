@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Debug)]
-pub struct Joltage(u8);
+pub struct Joltage(u64);
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub struct Battery(Joltage);
@@ -44,34 +44,42 @@ impl FromStr for BatteryBank {
 }
 
 impl Joltage {
-    pub fn value(&self) -> u8 {
+    pub fn value(&self) -> u64 {
         self.0
     }
 }
 
 impl BatteryBank {
-    pub fn largest_possible_joltage(&self) -> Joltage {
-        let result = self
-            .batteries
-            .iter()
-            .rfold((None, None), |(first, second), item| {
-                match (first, second) {
-                    (None, _) => (Some(item), None),
-                    (Some(first), None) => (Some(item), Some(first)),
-                    (Some(first), Some(second)) => {
-                        if item >= first {
-                            (Some(item), Some(first.max(second)))
-                        } else {
-                            (Some(first), Some(second))
-                        }
-                    }
-                }
-            });
+    pub fn largest_possible_joltage(&self, num_batteries: usize) -> Joltage {
+        let chosen_batteries =
+            self.batteries
+                .iter()
+                .rfold(Vec::new(), |mut chosen_batteries, battery| {
+                    if chosen_batteries.len() < num_batteries {
+                        chosen_batteries.insert(0, battery);
+                    } else if battery >= chosen_batteries.first().unwrap() {
+                        let mut index_to_drop = 0;
+                        for (i, battery) in chosen_batteries.iter().enumerate() {
+                            if *battery > chosen_batteries[index_to_drop] {
+                                break;
+                            }
 
-        if let (Some(largest), Some(second_largest)) = result {
-            Joltage(largest.0.0 * 10 + second_largest.0.0)
-        } else {
-            panic!()
-        }
+                            index_to_drop = i
+                        }
+
+                        chosen_batteries.remove(index_to_drop);
+                        chosen_batteries.insert(0, battery);
+                    }
+
+                    chosen_batteries
+                });
+
+        let value = chosen_batteries
+            .into_iter()
+            .enumerate()
+            .map(|(index, item)| 10_u64.pow((num_batteries - index - 1) as u32) * (item.0.0 as u64))
+            .sum();
+
+        Joltage(value)
     }
 }

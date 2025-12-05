@@ -1,3 +1,18 @@
+use crate::day03::common::BatteryBank;
+
 pub fn run(input: &str) {
-    unimplemented!("Level not yet implemented");
+    let banks = input
+        .split('\n')
+        .filter(|line| !line.is_empty())
+        .map(|line| line.parse::<BatteryBank>())
+        .collect::<Result<Vec<_>, _>>()
+        .expect("Failed to parse battery banks");
+
+    let result: u64 = banks
+        .into_iter()
+        .map(|bank| bank.largest_possible_joltage(12))
+        .map(|joltage| joltage.value())
+        .sum();
+
+    println!("Answer is {}", result);
 }

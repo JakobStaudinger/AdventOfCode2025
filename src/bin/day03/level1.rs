@@ -8,10 +8,10 @@ pub fn run(input: &str) {
         .collect::<Result<Vec<_>, _>>()
         .expect("Failed to parse battery banks");
 
-    let result: u32 = banks
+    let result: u64 = banks
         .into_iter()
-        .map(|bank| bank.largest_possible_joltage())
-        .map(|joltage| joltage.value() as u32)
+        .map(|bank| bank.largest_possible_joltage(2))
+        .map(|joltage| joltage.value())
         .sum();
 
     println!("Answer is {}", result);
